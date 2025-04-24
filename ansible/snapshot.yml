@@ -1,0 +1,21 @@
+- name: Snapshot du volume EBS avec tag
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Créer un snapshot
+      community.aws.ec2_snapshot:
+        volume_id: "{{ ebs_volume_id }}"
+        description: "Backup PostgreSQL - {{ ansible_date_time.date }}"
+        tags:
+          Name: "daily-{{ ansible_date_time.date }}"
+        region: "{{ aws_region }}"
+        wait: yes
+      register: snapshot_result
+
+    - name: Afficher l'ID du snapshot
+      debug:
+        msg: "Snapshot ID : {{ snapshot_result.snapshot_id }}"

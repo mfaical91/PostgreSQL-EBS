@@ -1,0 +1,59 @@
+- name: Déploiement PostgreSQL avec EBS
+  hosts: postgres
+  gather_facts: false
+  become: true
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Créer le point de montage
+      file:
+        path: "{{ mount_point }}"
+        state: directory
+        mode: '0755'
+
+    - name: Formater le disque si besoin
+      command: mkfs.ext4 {{ mount_device }}
+      args:
+        creates: "/etc/.disk_formatted"
+
+    - name: Marquer le disque comme formaté
+      file:
+        path: /etc/.disk_formatted
+        state: touch
+
+    - name: Monter le disque
+      mount:
+        path: "{{ mount_point }}"
+        src: "{{ mount_device }}"
+        fstype: ext4
+        opts: defaults
+        state: mounted
+
+    - name: Installer PostgreSQL
+      apt:
+        name: postgresql
+        update_cache: yes
+        state: present
+
+    - name: Arrêter PostgreSQL
+      service:
+        name: postgresql
+        state: stopped
+
+    - name: Déplacer les données
+      command: mv /var/lib/postgresql /data/postgres
+      args:
+        creates: "/data/postgres/postgresql"
+
+    - name: Lien symbolique
+      file:
+        src: /data/postgres/postgresql
+        dest: /var/lib/postgresql
+        state: link
+
+    - name: Démarrer PostgreSQL
+      service:
+        name: postgresql
+        state: started
+        enabled: yes

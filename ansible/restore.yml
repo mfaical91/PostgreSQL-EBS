@@ -1,0 +1,21 @@
+- name: Restaurer depuis snapshot
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Créer un volume depuis snapshot
+      community.aws.ec2_vol:
+        snapshot: "{{ snapshot_id }}"
+        zone: "{{ aws_zone }}"
+        region: "{{ aws_region }}"
+        volume_type: gp2
+        size: 10
+        state: present
+      register: restored_volume
+
+    - name: Afficher l'ID du volume restauré
+      debug:
+        msg: "Volume restauré : {{ restored_volume.volume_id }}"

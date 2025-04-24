@@ -1,0 +1,5 @@
+mount_device: /dev/xvdf
+mount_point: /data/postgres
+ebs_volume_id: vol-052a6f5810e2f526e
+aws_region: us-east-1
+aws_zone: us-east-1a
